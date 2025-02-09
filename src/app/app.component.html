@@ -1,15 +1,4 @@
 <header>
-  <!-- <h1>
-   test 123
-  </h1> -->
-
-  <!-- <nav>
-    <a routerLink="/home" routerLinkActive="active">Chat</a>
-    <a routerLink="/products" routerLinkActive="active">Products</a>
-    <a routerLink="/contact" routerLinkActive="active">Contact</a>
-    <a routerLink="/admin" routerLinkActive="active">Admin</a>
-  </nav> -->
-</header>
 
 <main>
   <router-outlet></router-outlet>
@@ -28,10 +17,8 @@
              (click)="selectUserHandler(user.phone)"
         >
 
-          <img [src]="user?.image"
-               [alt]="user?.name"
-               class="avatar" 
-          />
+          <img *ngIf="user?.image" [src]="'../assets/user/default.png'" [alt]="user?.name" class="avatar" />
+
           <p class="username">{{user?.name}}</p>
 
         </div>
@@ -44,10 +31,8 @@
         <ng-container *ngIf="selectedUser">
           <div class="chat-header">
 
-            <img [src]="selectedUser?.image"
-                 [alt]="selectedUser?.name"
-                 class="avatar"
-            />
+
+            <img *ngIf="selectedUser?.image" [src]="'../assets/user/default.png'" [alt]="selectedUser?.name" class="avatar" />
             <p class="username">{{selectedUser?.name}}</p>
 
           </div>
@@ -103,7 +88,7 @@
       <div class="col-md-12">
 
         <div class="form-group">
-          <input type="number"
+          <input type="string"
                  placeholder="Enter your phone number"
                  class="form-control"
                  [(ngModel)]="phone" />
@@ -122,5 +107,5 @@
 
 <footer>
   <hr>
-  
+
 </footer>

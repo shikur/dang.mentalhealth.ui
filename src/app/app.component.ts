@@ -2,19 +2,17 @@ import { Component, VERSION, inject ,OnInit, AfterViewInit, ViewChild } from '@a
 import { CommonModule, NgClass,  } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ChatService } from './chat.service';
-import { PopupComponent } from './popup/popup.component';
-import { Observable } from 'rxjs';
-import { UserData } from './models/UserData.interface';
+import { ChatService } from './services/chat.service';
 import { FormsModule } from '@angular/forms';
 import { NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import {DataforanylticsService} from  './dataforanyltics.service'
+import {DataforanylticsService} from  './services/dataforanyltics.service'
 import { UserProfile } from './Interface/userprofile.interface';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, PopupComponent, FormsModule, NgbModalModule, NgClass],
+  imports: [CommonModule, RouterModule, FormsModule, NgbModalModule, NgClass],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -22,42 +20,52 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   @ViewChild('popup', {static: false}) popup: any;
   private userProfile!: UserProfile;
-  public roomId: string='room-3';
-  public messageText?: string='';
- 
+  public roomId: string='';
+  public messageText?: string;
+
   public messageArray: { user: string, message: string }[] = [];
   private storageArray: any[] = [];
- 
+
 
   public showScreen: boolean = false ;
-  public phone: string = '9876598765';;
+  public phone: string="";
   public currentUser: any ;
   public selectedUser: any ;
-  
-  private url2 = 'http://localhost:5000/api/chat/save'
-  private urlroombase = 'http://localhost:5000/api/session/user'
-  private userurl =  "http://localhost:5000/api/client/profiles"
-  private getuserlist = "http://localhost:5000/api/session/userinfo?abc"
+
+  private chatSave =environment.api.chatSave;
+  private getuserlist = environment.api.getUserList;
 
   userList:UserProfile[] = [];
-  
+
   constructor(
     private modalService: NgbModal,
     private chatService: ChatService,
     private dataforanylticsService : DataforanylticsService
+
   ) {  }
+  ngOnInit(): void {
 
-  ngOnInit(): void { }
+    this.chatService.getMessage()
+    .subscribe((data: { user: string, room: string, message: string }) => {
+      this.messageArray.push(data);
+      if (this.roomId) {
+        setTimeout(() => {
+          this.storageArray = this.chatService.getStorage();
+          const storeIndex = this.storageArray
+            .findIndex((storage: { roomId: any; }) => storage.roomId === this.roomId);
+          this.messageArray = this.storageArray[storeIndex].chats;
+        }, 500);
+      }
+    });
+  }
 
-  // loadUserProfiles(urlroombase: string, userurl: string, phone:string) {
-  //  this.dataforanylticsService.getUserProfiles(urlroombase, userurl, phone).subscribe(userProfile => {
-  //     this.userList =userProfile;
-  //   });  }
 
-    loadUserProfiles(getuserlist: string) {
-      this.dataforanylticsService.getUserInfo(getuserlist).subscribe(userProfile => {
-         this.userList =userProfile;
-       });  }
+
+loadUserProfiles(getuserlist: string) {
+  const url=  getuserlist  + '?phone=' + this.phone;//this.phone
+  this.dataforanylticsService.getUserInfo(url).subscribe(userProfile => {
+      this.userList =userProfile;
+    });  }
 
   ngAfterViewInit(): void {   this.openPopup(this.popup); }
 
@@ -66,22 +74,13 @@ export class AppComponent implements OnInit, AfterViewInit {
   login(dismiss: any): void {
 
     this.loadUserProfiles(this.getuserlist);
-    this.chatService.getMessage()
-      .subscribe((data: { user: string, room: string, message: string }) => {
-        this.messageArray.push(data);
-        if (this.roomId) {
-          setTimeout(() => {
-            this.storageArray = this.chatService.getStorage();
-            const storeIndex = this.storageArray
-              .findIndex((storage: { roomId: any; }) => storage.roomId === this.roomId);
-            this.messageArray = this.storageArray[storeIndex].chats;
-          }, 500);
-        }
-      });
-    
+
+     // /home/dang/snap/firefox/common/.mozilla/firefox/
+     console.log('Phone:', this.phone);
     this.currentUser = this.userList.find(user => user.phone === this.phone.toString());
     this.userList = this.userList.filter((user) => user.phone !== this.phone.toString());
-
+    // this.showScreen = true;// to be removed
+    // dismiss();
     if (this.currentUser) {
       this.showScreen = true;
       dismiss();
@@ -146,7 +145,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     timestamp: new Date(),
     phone : this.phone };
     try {
-    this.dataforanylticsService.postData(this.url2, data).subscribe({
+    this.dataforanylticsService.postData(this.chatSave, data).subscribe({
       next: (response) => console.log('Success:', response),
       error: (error) => console.error('Error:', error)
     });}

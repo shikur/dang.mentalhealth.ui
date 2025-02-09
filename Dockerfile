@@ -1,14 +1,14 @@
 FROM node:21-slim as build
 WORKDIR /app
 COPY package*.json  .
-RUN ls -la 
+RUN ls -la
 #COPY ./healthui/package*.json /app/
-RUN ls -la 
+RUN ls -la
 RUN npm install
 COPY . .
 RUN npm install -g @angular/cli@17
-RUN ls -la 
-RUN ng build 
+RUN ls -la
+RUN ng build
 
 # Stage 2: Serve the app with nginx
 # FROM nginx:1-alpine-slim
@@ -30,7 +30,7 @@ RUN ng build
 
 # # Expose the port the app runs on
 # this is dev
-EXPOSE 4200
+EXPOSE "4200:4200"
 
 # Start the application
 # CMD ["ng", "serve", "--host", "0.0.0.0"]
